@@ -119,7 +119,7 @@ build_gdbm() {
 }
 setup_ohmyzsh() {
   local OPREFIX="$(echo $PREFIX | sed "s|$LBIN|ohmyzsh|")"
-  [ -d $PREFIX/etc/zsh ] && return 0
+  [ -d $PREFIX/system/etc/zsh ] && return 0
   cd $DIR
   mkdir -p $OPREFIX
   git clone https://github.com/ohmyzsh/ohmyzsh.git $OPREFIX/.oh-my-zsh
@@ -127,9 +127,9 @@ setup_ohmyzsh() {
   cp $OPREFIX/.oh-my-zsh/templates/zshrc.zsh-template .zshrc
   sed -i -e "s|PATH=.*|PATH=\$PATH|" -e "s|ZSH=.*|ZSH=/system/etc/zsh/.oh-my-zsh|" -e "s|ARCHFLAGS=.*|ARCHFLAGS=\"-arch $LARCH\"|" .zshrc
   cd $DIR/$LBIN
-  mkdir -p $PREFIX/etc/zsh
-  cp -rf $OPREFIX/.oh-my-zsh $PREFIX/etc/zsh/
-  cp -f $OPREFIX/.zshrc $PREFIX/etc/zsh/.zshrc
+  mkdir -p $PREFIX/system/etc/zsh
+  cp -rf $OPREFIX/.oh-my-zsh $PREFIX/system/etc/zsh/
+  cp -f $OPREFIX/.zshrc $PREFIX/system/etc/zsh/.zshrc
 }
 
 TEXTRESET=$(tput sgr0)
