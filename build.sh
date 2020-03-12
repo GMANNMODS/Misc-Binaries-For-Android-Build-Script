@@ -8,7 +8,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "BIN=      (Default: all) (Valid options are: htop, patchelf, strace, vim, zsh)"
+  echogreen "BIN=      (Default: all) (Valid options are: htop, patchelf, strace, vim, zsh, zstd)"
   echogreen "ARCH=     (Default: all) (Valid Arch values: all, arm, arm64, aarch64, x86, i686, x64, x86_64)"
   echogreen "STATIC=   (Default: true) (Valid options are: true, false)"
   echogreen "API=      (Default: 29) (Valid options are: 21, 22, 23, 24, 26, 27, 28, 29)"
@@ -194,6 +194,7 @@ for LBIN in $BIN; do
     "strace") VER="v5.5"; URL="strace/strace";;
     "vim") unset VER; URL="vim/vim";;
     "zsh") VER="5.7.1";;
+    "zstd") VER="v1.4.4"; URL="facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
 
@@ -222,6 +223,7 @@ for LBIN in $BIN; do
       arm) LARCH=arm; target_host=arm-linux-androideabi;;
       x64) LARCH=x86_64; target_host=x86_64-linux-android;;
       x86) LARCH=i686; target_host=i686-linux-android; FLAGS="TIME_T_32_BIT_OK=yes ";;
+      *) echored "Invalid ARCH: $LARCH!"; exit 1;;
     esac
     export AR=$target_host-ar
     export AS=$target_host-as
@@ -286,6 +288,7 @@ for LBIN in $BIN; do
         setup_ohmyzsh
         sed -i "/exit 0/d" Util/preconfig
         . Util/preconfig
+        sed -i -e "/trap 'save=0'/azdmsg=$zd\nmkdir -p $zd" -e "/# Substitute an initial/,/# Don't run if we can't write to \$zd./d" Functions/Newuser/zsh-newuser-install
         $STATIC && FLAGS="--disable-dynamic --disable-dynamic-nss $FLAGS"
         ./configure \
         --host=$target_host --target=$target_host \
@@ -312,6 +315,10 @@ for LBIN in $BIN; do
         --sbindir=/system/bin \
         --sysconfdir=/system/etc
         ;;
+      "zstd")
+        [ "$(grep '#Zackptg5' programs/Makefile)" ] && echo "#Zackptg5" >> programs/Makefile
+        $STATIC && [ ! "$(grep '#Zackptg5' programs/Makefile)" ] && sed -i "s/CFLAGS  +=/CFLAGS  += -static/" programs/Makefile
+        ;;
     esac
     [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
 
@@ -323,7 +330,7 @@ for LBIN in $BIN; do
     else
       make install -j$JOBS
     fi
-    make distclean
+    make distclean || make clean
     $STRIP $PREFIX/bin/*
     echogreen "$LBIN built sucessfully and can be found at: $PREFIX"
   done
